@@ -27,14 +27,6 @@ type core_passes =
   | `Core_Stackalloc
   | `Core_Start ]
 
-type clam1_passes =
-  [ `Clam1_End
-  | `Clam1_RC_Drop_Spec
-  | `Clam1_RC_End
-  | `Clam1_RC_Insert_Ref
-  | `Clam1_Start
-  | `Clam1_Unused_Let ]
-
 type clam_passes = [ `Clam_End | `Clam_Start | `Clam_Unused_Let ]
 type mbt_input = File_Path of string | Name_Content of string * string
 type mi_input = Import_Path of string | Import_Path_Content of string * string
@@ -208,17 +200,6 @@ let monofy_core_link ~(link_output : Core_link.output) ~exported_functions :
   in
   let mono_core = Pass_layout.optimize_layout mono_core in
   mono_core
-
-let clam1_of_mcore ~(elim_unused_let : bool) (core : Mcore.t) ~clam1_callback :
-    Clam1.prog =
-  let pass ~cond ~stage f prog =
-    if cond then prog |> f |-> clam1_callback stage else prog
-  in
-  core |> Clam1_of_core.transl_prog
-  |-> clam1_callback `Clam1_Start
-  |> pass ~cond:elim_unused_let ~stage:`Clam1_Unused_Let
-       Pass_unused_let1.unused_let_opt
-  |-> clam1_callback `Clam1_End
 
 let clam_of_mcore ~(elim_unused_let : bool) (core : Mcore.t) ~clam_callback :
     Clam.prog =
